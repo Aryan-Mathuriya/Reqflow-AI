@@ -7,3 +7,4 @@ pymupdf
 python-docx
 python-multipart
 reportlab
+psycopg[binary]

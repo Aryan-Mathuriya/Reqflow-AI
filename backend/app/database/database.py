@@ -1,154 +1,172 @@
 
-import sqlite3
+import os
 import json
-from pathlib import Path
+import psycopg
+from psycopg.rows import dict_row
 from datetime import datetime, timezone
 
-DATABASE_PATH = Path(__file__).resolve().parent / "reqflow.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is missing from environment variables")
 
 
 def get_connection():
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
-    return connection
+    return psycopg.connect(
+        DATABASE_URL,
+        row_factory=dict_row
+    )
 
 
 def initialize_database():
     connection = get_connection()
-    cursor = connection.cursor()
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS analyses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            project_name TEXT NOT NULL,
-            project_summary TEXT,
-            analysis_data TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            source_type TEXT DEFAULT 'text'
-        )
-    """)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS analyses (
+                    id BIGSERIAL PRIMARY KEY,
+                    project_name TEXT NOT NULL,
+                    project_summary TEXT,
+                    analysis_data TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    source_type TEXT DEFAULT 'text'
+                )
+            """)
 
-    # Migrate existing databases without deleting saved analyses
-    cursor.execute("PRAGMA table_info(analyses)")
-    columns = [column["name"] for column in cursor.fetchall()]
+            cursor.execute("""
+                ALTER TABLE analyses
+                ADD COLUMN IF NOT EXISTS
+                source_type TEXT DEFAULT 'text'
+            """)
 
-    if "source_type" not in columns:
-        cursor.execute("""
-            ALTER TABLE analyses
-            ADD COLUMN source_type TEXT DEFAULT 'text'
-        """)
+        connection.commit()
 
-    connection.commit()
-    connection.close()
+    finally:
+        connection.close()
 
 
 def save_analysis(analysis, source_type="text"):
     connection = get_connection()
-    cursor = connection.cursor()
 
-    cursor.execute("""
-        INSERT INTO analyses (
-            project_name,
-            project_summary,
-            analysis_data,
-            created_at,
-            source_type
-        )
-        VALUES (?, ?, ?, ?, ?)
-    """, (
-        analysis.get("project_name", "Untitled Project"),
-        analysis.get("project_summary", ""),
-        json.dumps(analysis),
-        datetime.now(timezone.utc).isoformat(),
-        source_type
-    ))
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO analyses (
+                    project_name,
+                    project_summary,
+                    analysis_data,
+                    created_at,
+                    source_type
+                )
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id
+            """, (
+                analysis.get("project_name", "Untitled Project"),
+                analysis.get("project_summary", ""),
+                json.dumps(analysis),
+                datetime.now(timezone.utc).isoformat(),
+                source_type
+            ))
 
-    analysis_id = cursor.lastrowid
+            analysis_id = cursor.fetchone()["id"]
 
-    connection.commit()
-    connection.close()
+        connection.commit()
+        return analysis_id
 
-    return analysis_id
+    finally:
+        connection.close()
 
 
 def get_all_analyses():
     connection = get_connection()
-    cursor = connection.cursor()
 
-    cursor.execute("""
-        SELECT id, project_name, project_summary, created_at
-        FROM analyses
-        ORDER BY id DESC
-    """)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, project_name, project_summary, created_at
+                FROM analyses
+                ORDER BY id DESC
+            """)
 
-    results = [dict(row) for row in cursor.fetchall()]
-    connection.close()
+            return cursor.fetchall()
 
-    return results
+    finally:
+        connection.close()
 
 
 def get_analysis_by_id(analysis_id):
     connection = get_connection()
-    cursor = connection.cursor()
 
-    cursor.execute(
-        "SELECT * FROM analyses WHERE id = ?",
-        (analysis_id,)
-    )
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM analyses WHERE id = %s",
+                (analysis_id,)
+            )
 
-    result = cursor.fetchone()
-    connection.close()
+            result = cursor.fetchone()
 
-    if result is None:
-        return None
+            if result is None:
+                return None
 
-    analysis = dict(result)
-    analysis["analysis_data"] = json.loads(
-        analysis["analysis_data"]
-    )
+            analysis = dict(result)
+            analysis["analysis_data"] = json.loads(
+                analysis["analysis_data"]
+            )
 
-    return analysis
+            return analysis
+
+    finally:
+        connection.close()
 
 
 def delete_analysis(analysis_id):
     connection = get_connection()
-    cursor = connection.cursor()
 
-    cursor.execute(
-        "DELETE FROM analyses WHERE id = ?",
-        (analysis_id,)
-    )
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM analyses WHERE id = %s",
+                (analysis_id,)
+            )
 
-    deleted = cursor.rowcount > 0
+            deleted = cursor.rowcount > 0
 
-    connection.commit()
-    connection.close()
+        connection.commit()
+        return deleted
 
-    return deleted
+    finally:
+        connection.close()
 
 
 def get_dashboard_stats():
     connection = get_connection()
-    cursor = connection.cursor()
 
-    cursor.execute("""
-        SELECT
-            COUNT(*) AS total_analyses,
-            SUM(
-                CASE WHEN source_type = 'document'
-                THEN 1 ELSE 0 END
-            ) AS documents_processed
-        FROM analyses
-    """)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    COUNT(*) AS total_analyses,
+                    COALESCE(
+                        SUM(
+                            CASE WHEN source_type = 'document'
+                            THEN 1 ELSE 0 END
+                        ), 0
+                    ) AS documents_processed
+                FROM analyses
+            """)
 
-    result = cursor.fetchone()
-    connection.close()
+            result = cursor.fetchone()
 
-    total_analyses = result["total_analyses"] or 0
-    documents_processed = result["documents_processed"] or 0
+            total_analyses = result["total_analyses"]
+            documents_processed = result["documents_processed"]
 
-    return {
-        "total_analyses": total_analyses,
-        "documents_processed": documents_processed,
-        "time_saved_minutes": total_analyses * 30
-    }
+            return {
+                "total_analyses": total_analyses,
+                "documents_processed": documents_processed,
+                "time_saved_minutes": total_analyses * 30
+            }
+
+    finally:
+        connection.close()

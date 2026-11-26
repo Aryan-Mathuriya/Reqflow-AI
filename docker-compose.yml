@@ -9,8 +9,6 @@ services:
       - ./backend/.env
     ports:
       - "8000:8000"
-    volumes:
-      - reqflow_data:/app/app/database
     restart: unless-stopped
 
   frontend:
@@ -23,6 +21,3 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-
-volumes:
-  reqflow_data:
