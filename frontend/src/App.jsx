@@ -61,7 +61,7 @@ function App() {
     setAnalysis(null)
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/analyze', {
+      const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ function App() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/api/upload-document',
+        '/api/upload-document',
         {
           method: 'POST',
           body: formData,
@@ -135,7 +135,7 @@ function App() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/api/download-report',
+        '/api/download-report',
         {
           method: 'POST',
           headers: {
@@ -173,7 +173,7 @@ function App() {
   const fetchDashboardStats = async () => {
     setStatsError('')
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/dashboard-stats')
+      const response = await fetch('/api/dashboard-stats')
       const data = await response.json()
       if (!response.ok) throw new Error(data.detail || 'Unable to load dashboard statistics.')
       setStats(data.stats)
@@ -195,7 +195,7 @@ function App() {
     setHistoryLoading(true)
     setHistoryError('')
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/history')
+      const response = await fetch('/api/history')
       const data = await response.json()
       if (!response.ok) throw new Error(data.detail || 'Unable to load analysis history.')
       setHistory(data.history || [])
@@ -210,7 +210,7 @@ function App() {
   const openHistoryAnalysis = async (analysisId) => {
     setHistoryError('')
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/history/${analysisId}`)
+      const response = await fetch(`/api/history/${analysisId}`)
       const data = await response.json()
       if (!response.ok) throw new Error(data.detail || 'Unable to open saved analysis.')
       setAnalysis(data.analysis.analysis_data)
@@ -226,7 +226,7 @@ function App() {
   const removeHistoryAnalysis = async (analysisId) => {
     if (!window.confirm('Are you sure you want to delete this analysis?')) return
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/history/${analysisId}`, {
+      const response = await fetch(`/api/history/${analysisId}`, {
         method: 'DELETE'
       })
       const data = await response.json()

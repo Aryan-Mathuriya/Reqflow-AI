@@ -43,14 +43,12 @@ app.include_router(
     tags=["Analysis History"]
 )
 
-
 @app.get("/")
 def home():
     return {
         "message": "Welcome to ReqFlow AI",
         "status": "Running successfully"
     }
-
 
 @app.get("/health")
 def health_check():
