@@ -545,7 +545,7 @@ function App() {
 
 
 
-      {/\* Sidebar \*/}
+      {/* Sidebar */}
 
       <aside className="w-64 border-r border-slate-200 bg-white p-6 hidden md:flex flex-col shrink-0">
 
@@ -667,13 +667,13 @@ function App() {
 
 
 
-      {/\* Main Content \*/}
+      {/* Main Content */}
 
       <main className="flex-1 min-w-0">
 
 
 
-        {/\* Header \*/}
+        {/* Header */}
 
         <header className="h-20 border-b border-slate-200 bg-white flex items-center justify-between px-6 md:px-10">
 
@@ -825,7 +825,7 @@ function App() {
 
             <>
 
-          {/\* Welcome \*/}
+          {/* Welcome */}
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
 
@@ -861,7 +861,7 @@ function App() {
 
 
 
-          {/\* Statistics \*/}
+          {/* Statistics */}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
 
@@ -919,7 +919,7 @@ function App() {
 
 
 
-          {/\* Analysis Input \*/}
+          {/* Analysis Input */}
 
           {!analysis && (
 
@@ -991,7 +991,7 @@ function App() {
 
 
 
-                {/\* Document Upload \*/}
+                {/* Document Upload */}
 
                 <div className="mt-5 border border-dashed border-blue-200 bg-blue-50/50 rounded-xl p-5">
 
@@ -1125,7 +1125,7 @@ function App() {
 
 
 
-          {/\* Analysis Results \*/}
+          {/* Analysis Results */}
 
           {analysis && (
 
@@ -1203,7 +1203,7 @@ function App() {
 
 
 
-              {/\* Project Overview \*/}
+              {/* Project Overview */}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
 
@@ -1225,7 +1225,7 @@ function App() {
 
 
 
-              {/\* Objectives \*/}
+              {/* Objectives */}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
 
@@ -1251,7 +1251,7 @@ function App() {
 
 
 
-              {/\* Functional Requirements \*/}
+              {/* Functional Requirements */}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
 
@@ -1291,7 +1291,7 @@ function App() {
 
 
 
-              {/\* Non-functional Requirements \*/}
+              {/* Non-functional Requirements */}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
 
@@ -1323,7 +1323,7 @@ function App() {
 
 
 
-              {/\* Technical Requirements \*/}
+              {/* Technical Requirements */}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
 
@@ -1353,7 +1353,7 @@ function App() {
 
 
 
-              {/\* Technology Stack \*/}
+              {/* Technology Stack */}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
 
@@ -1381,7 +1381,7 @@ function App() {
 
 
 
-              {/\* Milestones \*/}
+              {/* Milestones */}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
 
@@ -1439,7 +1439,7 @@ function App() {
 
 
 
-              {/\* Clarification Questions \*/}
+              {/* Clarification Questions */}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
 
@@ -1495,7 +1495,7 @@ function App() {
 
 
 
-          {/\* Features \*/}
+          {/* Features */}
 
           {!analysis && (
 
