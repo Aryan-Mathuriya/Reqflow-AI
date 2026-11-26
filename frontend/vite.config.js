@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
+  console.log('VITE_API_URL detected:', Boolean(env.VITE_API_URL))
 
   return {
     plugins: [react(), tailwindcss()],
