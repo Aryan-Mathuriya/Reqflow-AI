@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+groq
+pydantic
+pymupdf
+python-docx
+python-multipart
+reportlab
