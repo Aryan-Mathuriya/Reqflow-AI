@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Auth from './Auth'
 
 
 import {
@@ -53,7 +54,16 @@ const API_BASE_URL = import.meta.env.PROD
   ? 'https://reqflow-ai-ouje.onrender.com'
   : ''
 
+const apiFetch = (url, options = {}) => {
+  const token = localStorage.getItem('reqflow_token')
+  const headers = { ...(options.headers || {}) }
+  if (token) headers.Authorization = `Bearer ${token}`
+  return fetch(url, { ...options, headers })
+}
+
 function App() {
+
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('reqflow_token'))
 
   const [requirements, setRequirements] = useState('')
 
@@ -86,10 +96,28 @@ function App() {
 
 
   useEffect(() => {
+    if (authToken) {
+      fetchDashboardStats()
+      fetchHistory()
+    }
+  }, [authToken])
 
-    fetchDashboardStats()
+  const handleAuthenticated = (token) => {
+    localStorage.setItem('reqflow_token', token)
+    setAuthToken(token)
+  }
 
-  }, [])
+  const handleLogout = () => {
+    localStorage.removeItem('reqflow_token')
+    setAuthToken(null)
+    setAnalysis(null)
+    setHistory([])
+    setStats(null)
+  }
+
+  if (!authToken) {
+    return <Auth onAuthenticated={handleAuthenticated} />
+  }
 
 
 
@@ -129,7 +157,7 @@ function App() {
 
     try {
 
-      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/analyze`, {
 
         method: 'POST',
 
@@ -205,7 +233,7 @@ function App() {
 
     try {
 
-      const response = await fetch(
+      const response = await apiFetch(
 
         `${API_BASE_URL}/api/upload-document`,
 
@@ -275,7 +303,7 @@ function App() {
 
     try {
 
-      const response = await fetch(
+      const response = await apiFetch(
 
         `${API_BASE_URL}/api/download-report`,
 
@@ -353,7 +381,7 @@ function App() {
 
     try {
 
-      const response = await fetch(`${API_BASE_URL}/api/dashboard-stats`)
+      const response = await apiFetch(`${API_BASE_URL}/api/dashboard-stats`)
 
       const data = await response.json()
 
@@ -397,7 +425,7 @@ function App() {
 
     try {
 
-      const response = await fetch(`${API_BASE_URL}/api/history`)
+      const response = await apiFetch(`${API_BASE_URL}/api/history`)
 
       const data = await response.json()
 
@@ -427,7 +455,7 @@ function App() {
 
     try {
 
-      const response = await fetch(`${API_BASE_URL}/api/history/${analysisId}`)
+      const response = await apiFetch(`${API_BASE_URL}/api/history/${analysisId}`)
 
       const data = await response.json()
 
@@ -459,7 +487,7 @@ function App() {
 
     try {
 
-      const response = await fetch(`${API_BASE_URL}/api/history/${analysisId}`,  {
+      const response = await apiFetch(`${API_BASE_URL}/api/history/${analysisId}`,  {
 
         method: 'DELETE'
 
@@ -697,7 +725,7 @@ function App() {
 
           </div>
 
-
+          <button onClick={handleLogout} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">Log out</button>
 
         </header>
 
