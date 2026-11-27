@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LockKeyhole, Mail, UserRound, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react'
 
-const API_BASE_URL = import.meta.env.PROD ? 'https://reqflow-ai-ouje.onrender.com' : ''
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://reqflow-ai-ouje.onrender.com' : '')
 
 export default function Auth({ onAuthenticated }) {
   const [mode, setMode] = useState('login')
