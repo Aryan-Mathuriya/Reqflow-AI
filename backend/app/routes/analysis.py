@@ -1,8 +1,8 @@
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from app.auth import get_current_user
 from app.services.llm_service import analyze_requirements
 from app.services.pdf_service import generate_analysis_pdf
 from app.database.database import save_analysis
@@ -15,49 +15,24 @@ class AnalysisRequest(BaseModel):
 
 
 @router.post("/analyze")
-def analyze(request: AnalysisRequest):
+def analyze(request: AnalysisRequest, current_user: dict = Depends(get_current_user)):
     try:
-        # Generate AI analysis
         result = analyze_requirements(request.requirements)
-
-        # Save analysis in SQLite
-        analysis_id = save_analysis(result, source_type="text")
-
-        return {
-            "success": True,
-            "analysis_id": analysis_id,
-            "analysis": result
-        }
-
+        analysis_id = save_analysis(result, user_id=current_user["id"], source_type="text")
+        return {"success": True, "analysis_id": analysis_id, "analysis": result}
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error))
-
     except Exception as error:
         print("Analysis error:", error)
-        raise HTTPException(
-            status_code=500,
-            detail="Something went wrong during AI analysis."
-        )
+        raise HTTPException(status_code=500, detail="Something went wrong during AI analysis.")
 
 
 @router.post("/download-report")
-def download_report(analysis: dict):
+def download_report(analysis: dict, current_user: dict = Depends(get_current_user)):
     try:
         pdf_buffer = generate_analysis_pdf(analysis)
-
-        filename = "ReqFlow_AI_Analysis_Report.pdf"
-
-        return StreamingResponse(
-            pdf_buffer,
-            media_type="application/pdf",
-            headers={
-                "Content-Disposition": f'attachment; filename="{filename}"'
-            }
-        )
-
+        return StreamingResponse(pdf_buffer, media_type="application/pdf",
+            headers={"Content-Disposition": 'attachment; filename="ReqFlow_AI_Analysis_Report.pdf"'})
     except Exception as error:
         print("PDF generation error:", error)
-        raise HTTPException(
-            status_code=500,
-            detail="Unable to generate PDF report."
-        )
+        raise HTTPException(status_code=500, detail="Unable to generate PDF report.")
