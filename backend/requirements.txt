@@ -3,8 +3,11 @@ uvicorn[standard]
 python-dotenv
 groq
 pydantic
+pydantic[email]
 pymupdf
 python-docx
 python-multipart
 reportlab
 psycopg[binary]
+pwdlib[argon2]
+PyJWT
