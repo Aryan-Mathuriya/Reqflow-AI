@@ -317,7 +317,7 @@ function App() {
 
           },
 
-          body: JSON.stringify(analysis),
+          body: JSON.stringify({ analysis_id: selectedAnalysisId }),
 
         }
 
